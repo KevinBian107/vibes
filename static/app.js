@@ -33,6 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Logout
   document.getElementById("logout-btn").addEventListener("click", doLogout);
 
+  // Theme toggle
+  document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+  loadTheme();
+
   // Cluster select change
   document.getElementById("proc-cluster-select").addEventListener("change", fetchProcesses);
 
@@ -426,12 +430,7 @@ function initTerminal(name) {
     cursorBlink: true,
     fontSize: 14,
     fontFamily: "'SF Mono', Menlo, Monaco, 'Courier New', monospace",
-    theme: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      cursor: "#58a6ff",
-      selectionBackground: "#264f78",
-    },
+    theme: currentTermTheme(),
   });
 
   const fitAddon = new FitAddon.FitAddon();
@@ -518,12 +517,7 @@ function launchClaude() {
     cursorBlink: true,
     fontSize: 14,
     fontFamily: "'SF Mono', Menlo, Monaco, 'Courier New', monospace",
-    theme: {
-      background: "#0d1117",
-      foreground: "#e6edf3",
-      cursor: "#58a6ff",
-      selectionBackground: "#264f78",
-    },
+    theme: currentTermTheme(),
   });
 
   const fitAddon = new FitAddon.FitAddon();
@@ -698,6 +692,45 @@ function initFileExplorer() {
   document.getElementById("file-viewer-close").onclick = () => {
     document.getElementById("file-viewer").classList.add("hidden");
   };
+}
+
+/* ── Theme ─────────────────────────────────────────────────────────────────── */
+
+const THEME_KEY = "gpu-dashboard-theme";
+
+const TERM_THEMES = {
+  dark: { background: "#1e1e1e", foreground: "#cccccc", cursor: "#007acc", selectionBackground: "#264f78" },
+  light: { background: "#ffffff", foreground: "#333333", cursor: "#007acc", selectionBackground: "#add6ff" },
+};
+
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || "dark";
+  applyTheme(saved);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  applyTheme(current === "dark" ? "light" : "dark");
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem(THEME_KEY, theme);
+  document.getElementById("theme-toggle").textContent = theme === "dark" ? "☀️" : "🌙";
+
+  // Update all existing xterm instances
+  const termTheme = TERM_THEMES[theme];
+  Object.values(terminals).forEach(({ term }) => {
+    if (term) term.options.theme = termTheme;
+  });
+  if (claudeTerminal?.term) {
+    claudeTerminal.term.options.theme = termTheme;
+  }
+}
+
+function currentTermTheme() {
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  return TERM_THEMES[theme];
 }
 
 /* ── Utility ──────────────────────────────────────────────────────────────── */

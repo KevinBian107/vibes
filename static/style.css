@@ -2,18 +2,44 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --bg: #0d1117;
-  --bg-card: #161b22;
-  --bg-input: #0d1117;
-  --border: #30363d;
-  --text: #e6edf3;
-  --text-dim: #8b949e;
-  --accent: #58a6ff;
-  --green: #3fb950;
-  --red: #f85149;
-  --yellow: #d29922;
-  --orange: #db6d28;
+/* Dark theme (default) — VS Code Dark+ */
+:root, [data-theme="dark"] {
+  --bg: #1e1e1e;
+  --bg-card: #252526;
+  --bg-input: #3c3c3c;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --border: #3c3c3c;
+  --text: #cccccc;
+  --text-dim: #858585;
+  --accent: #007acc;
+  --accent-text: #3794ff;
+  --green: #4ec9b0;
+  --red: #f44747;
+  --yellow: #dcdcaa;
+  --orange: #ce9178;
+  --terminal-bg: #1e1e1e;
+  --scrollbar-bg: #1e1e1e;
+  --scrollbar-thumb: #424242;
+}
+
+/* Light theme — VS Code Light+ */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-card: #f3f3f3;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --border: #e0e0e0;
+  --text: #333333;
+  --text-dim: #717171;
+  --accent: #007acc;
+  --accent-text: #005fb8;
+  --green: #388a34;
+  --red: #cd3131;
+  --yellow: #bf8803;
+  --orange: #d18616;
+  --terminal-bg: #ffffff;
+  --scrollbar-bg: #f3f3f3;
+  --scrollbar-thumb: #c1c1c1;
 }
 
 body {
@@ -149,6 +175,19 @@ body {
 }
 
 #logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+#theme-toggle {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-top: 6px;
+  transition: transform 0.2s ease;
+}
+
+#theme-toggle:hover { transform: scale(1.15); }
 
 /* ── Main area ────────────────────────────────────────────────────────────── */
 
@@ -370,7 +409,7 @@ body {
   max-width: 500px;
 }
 
-#process-table tbody tr:hover { background: rgba(88, 166, 255, 0.05); }
+#process-table tbody tr:hover { background: var(--bg-hover); }
 
 /* ── Terminal ─────────────────────────────────────────────────────────────── */
 
@@ -395,7 +434,7 @@ body {
 
 #terminal-container {
   flex: 1;
-  background: #000;
+  background: var(--terminal-bg);
   border-radius: 0 8px 8px 8px;
   overflow: hidden;
   position: relative;
@@ -420,7 +459,7 @@ body {
 
 #claude-terminal-container {
   flex: 1;
-  background: #000;
+  background: var(--terminal-bg);
   border-radius: 8px 0 0 8px;
   overflow: hidden;
   min-width: 0;
@@ -482,7 +521,7 @@ body {
   user-select: none;
 }
 
-.file-entry:hover { background: rgba(88, 166, 255, 0.08); }
+.file-entry:hover { background: var(--bg-hover); }
 
 .file-entry.dir { color: var(--accent); }
 .file-entry.md-file { color: var(--green); }

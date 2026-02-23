@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
+<script>document.documentElement.setAttribute("data-theme", localStorage.getItem("gpu-dashboard-theme") || "dark")</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +27,7 @@
       <h2>Clusters</h2>
       <ul id="cluster-list"></ul>
       <button id="logout-btn">Disconnect</button>
+      <button id="theme-toggle">🌙</button>
     </aside>
 
     <!-- Main content -->
