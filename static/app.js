@@ -811,8 +811,9 @@ async function loadFileTree(path, parentEl, depth) {
         // Visible action buttons
         const actions = document.createElement("span");
         actions.className = "file-actions";
-        actions.innerHTML = `<button class="file-action-btn" title="New File">+</button><button class="file-action-btn" title="Rename">✏</button><button class="file-action-btn" title="Delete">✕</button>`;
-        const [newBtn, renBtn, delBtn] = actions.querySelectorAll("button");
+        actions.innerHTML = `<button class="file-action-btn" title="Download">⬇</button><button class="file-action-btn" title="New File">+</button><button class="file-action-btn" title="Rename">✏</button><button class="file-action-btn" title="Delete">✕</button>`;
+        const [dlBtn, newBtn, renBtn, delBtn] = actions.querySelectorAll("button");
+        dlBtn.addEventListener("click", (e) => { e.stopPropagation(); downloadFolder(entryPath, entry.name); });
         newBtn.addEventListener("click", (e) => { e.stopPropagation(); createNewItem(entryPath, false); });
         renBtn.addEventListener("click", (e) => { e.stopPropagation(); renameFile(entryPath, entry.name); });
         delBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteFile(entryPath, entry.name, true); });
@@ -1024,6 +1025,8 @@ function showContextMenu(e, path, name, isDir) {
   if (!isDir) {
     items.push({ label: "Open", icon: "📄", action: () => openFile(path, name) });
     items.push({ label: "Download", icon: "⬇", action: () => downloadFile(path, name) });
+  } else {
+    items.push({ label: "Download", icon: "⬇", action: () => downloadFolder(path, name) });
   }
 
   items.push({ separator: true });
@@ -1087,6 +1090,22 @@ function downloadFile(path, name) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function downloadFolder(path, name) {
+  const cluster = getFileCluster();
+  if (!cluster) return;
+
+  const url = cluster === "dsmlp"
+    ? `/api/dsmlp/download-folder?path=${encodeURIComponent(path)}`
+    : `/api/download-folder/${cluster}?path=${encodeURIComponent(path)}`;
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}.tar.gz`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

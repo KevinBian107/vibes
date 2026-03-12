@@ -94,7 +94,7 @@ train_setup.train_config.seed=123
 If you get OpenGL errors during evaluation/rendering, install the EGL dependencies and set the environment variables:
 
 ```bash
-apt-get install -y libopengl0 libgl1
+apt-get install -y libopengl0 libgl1 libegl-dev
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
 ```

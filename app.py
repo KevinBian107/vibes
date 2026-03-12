@@ -582,6 +582,54 @@ async def dsmlp_download_file(path: str = ""):
     return await _download_file_with_executor(ssh.dsmlp_execute, _file_root(for_dsmlp=True), path)
 
 
+# ── Folder download ─────────────────────────────────────────────────────
+
+
+async def _download_folder_with_executor(execute, root, path):
+    full = posixpath.normpath(posixpath.join(root, path))
+    if not full.startswith(root):
+        return JSONResponse(content={"error": "Invalid path"}, status_code=400)
+
+    parent = posixpath.dirname(full)
+    dirname = posixpath.basename(full)
+
+    try:
+        result = await asyncio.to_thread(
+            execute, f"tar czf - -C {parent!r} {dirname!r} | base64"
+        )
+        if result["exit_code"] != 0:
+            return JSONResponse(content={"error": result["stderr"].strip()}, status_code=400)
+
+        b64_data = result["stdout"].replace("\n", "").replace("\r", "")
+        archive_bytes = base64.b64decode(b64_data)
+        return Response(
+            content=archive_bytes,
+            media_type="application/gzip",
+            headers={"Content-Disposition": f'attachment; filename="{dirname}.tar.gz"'},
+        )
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@app.get("/api/download-folder/{cluster}")
+async def download_folder(cluster: str, path: str = ""):
+    if cluster not in CLUSTERS:
+        return JSONResponse(content={"error": "Unknown cluster"}, status_code=404)
+    if not ssh.is_connected(cluster):
+        return JSONResponse(content={"error": "Not connected"}, status_code=503)
+
+    executor = lambda cmd, **kw: ssh.execute(cluster, cmd, **kw)
+    return await _download_folder_with_executor(executor, _file_root(), path)
+
+
+@app.get("/api/dsmlp/download-folder")
+async def dsmlp_download_folder(path: str = ""):
+    if not ssh.is_dsmlp_connected() or not ssh._dsmlp_pod:
+        return JSONResponse(content={"error": "Not connected"}, status_code=503)
+
+    return await _download_folder_with_executor(ssh.dsmlp_execute, _file_root(for_dsmlp=True), path)
+
+
 # ── File rename ──────────────────────────────────────────────────────────────
 
 
