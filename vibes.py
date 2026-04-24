@@ -28,7 +28,7 @@ def discover_vibes() -> list[Path]:
 def first_line_summary(readme: Path) -> str:
     for line in readme.read_text().splitlines():
         s = line.strip()
-        if s and not s.startswith("#") and not s.startswith("<"):
+        if s and not s.startswith(("#", "<", ">", "```")):
             return s
     return ""
 

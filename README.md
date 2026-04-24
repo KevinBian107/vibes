@@ -2,12 +2,6 @@
   <img src="assets/logo.svg" alt="vibes" width="260">
 </p>
 
-<p align="center">
-  <em>a collection of small tools and hacks — all sharing one environment, one repo, many vibes.</em>
-</p>
-
----
-
 ## What this is
 
 `vibes` is a monorepo of lightweight, self-contained tools I reach for while doing research — dashboards, viewers, visualizers, small utilities. Each one lives in its own top-level directory and is independent; they just share a single conda environment so nothing is ever more than `conda activate vibes` away.
@@ -24,7 +18,9 @@ vibes/
 ├── shared/                # reusable helpers (grows as vibes overlap)
 ├── vibes.py               # discover / list the available vibes
 │
-├── gpu-dashboard/         # browser dashboard for remote GPU clusters
+├── gpu-access-board/      # live SSH dashboard: metrics, terminals, file explorer
+│   └── README.md
+├── gpu-dashboard-agent/   # Gist-backed monitor, no server, no SSH
 │   └── README.md
 │
 └── <your next vibe>/
@@ -53,7 +49,7 @@ python vibes.py
 Read a specific vibe's instructions:
 
 ```bash
-python vibes.py gpu-dashboard
+python vibes.py gpu-access-board
 ```
 
 Then run it per its README.
@@ -62,7 +58,8 @@ Then run it per its README.
 
 | vibe | what it does |
 |---|---|
-| [`gpu-dashboard`](gpu-dashboard/) | browser dashboard for monitoring remote GPU clusters (RunAI + DSMLP) over SSH |
+| [`gpu-access-board`](gpu-access-board/) | live SSH dashboard — metrics, terminals, file explorer, Claude Code launcher for remote GPU clusters |
+| [`gpu-dashboard-agent`](gpu-dashboard-agent/) | server-less GPU monitor — workstation agents push to a GitHub Gist, static dashboard reads it |
 
 ## Adding a new vibe
 

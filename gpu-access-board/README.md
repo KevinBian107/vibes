@@ -39,7 +39,7 @@ conda activate vibes
 From inside this directory:
 
 ```bash
-cd gpu-dashboard
+cd gpu-access-board
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -105,7 +105,7 @@ dsmlp:
 ## Project Structure
 
 ```
-gpu-dashboard/
+gpu-access-board/
 ├── README.md          # this file
 ├── config.yaml        # All configuration (clusters, project, server, dsmlp)
 ├── config.py          # Loads config.yaml into Python (exports SERVER, PROJECT, CLUSTERS, DSMLP)

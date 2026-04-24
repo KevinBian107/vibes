@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gpu-dashboard-agent · vibes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg class="glyph" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+        <g transform="translate(32,32)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="0" cy="0" rx="24" ry="8" stroke-width="1.8" transform="rotate(-20)"/>
+          <ellipse cx="0" cy="0" rx="19" ry="6.5" stroke-width="1.8" transform="rotate(20)"/>
+          <ellipse cx="0" cy="0" rx="12" ry="4" stroke-width="1.8"/>
+        </g>
+        <circle cx="32" cy="32" r="2.5" fill="#60a5fa"/>
+      </svg>
+      <h1>gpu-dashboard-agent</h1>
+    </div>
+    <div class="controls">
+      <input id="gist-id" placeholder="Gist ID" spellcheck="false" autocomplete="off">
+      <input id="github-token" placeholder="GitHub PAT (optional)" type="password" autocomplete="off">
+      <label class="interval">
+        poll
+        <input id="interval" type="number" min="10" max="600" step="5" value="30"> s
+      </label>
+      <button id="connect-btn">Connect</button>
+      <button id="disconnect-btn" class="secondary" hidden>Disconnect</button>
+    </div>
+    <div id="status" class="status"></div>
+  </header>
+
+  <main id="dashboard">
+    <div id="empty" class="empty">
+      <p>Paste a Gist ID above and click <b>Connect</b>, or open this page with <code>?gist=&lt;id&gt;</code> in the URL.</p>
+      <p class="muted">Without a GitHub token, reads are limited to 60 / hour per IP. A token with <code>gist</code> scope raises it to 5000 / hour.</p>
+    </div>
+    <div id="cards"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
