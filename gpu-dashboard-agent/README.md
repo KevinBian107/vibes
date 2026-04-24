@@ -61,23 +61,29 @@ curl -O https://raw.githubusercontent.com/KevinBian107/vibes/master/gpu-dashboar
 # make a real config and lock it down
 cp config.example.json config.json
 chmod 600 config.json
-nano config.json         # or: vi config.json  /  "${EDITOR:-nano}" config.json
-                         # fill in gist_id, github_token, workstation_name
 ```
 
-`config.json` should now look like this (substitute your own values):
+**Now edit `config.json`** — open it in any text editor you have available on that box (`nano config.json`, `vi config.json`, or if `$EDITOR` is set, `"$EDITOR" config.json`). Fill in the four fields below; everything on the right of `//` is a comment — delete those before saving since JSON doesn't allow comments:
 
-```json
+```jsonc
 {
-  "gist_id": "0123456789abcdef0123456789abcdef",
-  "github_token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  "workstation_name": "salk-ws-1",
-  "interval_seconds": 30,
-  "gist_file": "metrics.json"
+  "gist_id":          "0123456789abcdef0123456789abcdef",  // just the hex ID, NOT the full https://gist.github.com/... URL
+  "github_token":     "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx",  // the PAT from step 2 (scope: gist)
+  "workstation_name": "salk-ws-1",                         // any label — must be unique per machine
+  "interval_seconds": 30,                                  // how often to push; 30s is usually fine
+  "gist_file":        "metrics.json"                       // leave as-is unless you named your Gist file something else
 }
 ```
 
-Pick a unique `workstation_name` per machine — that's the key each agent writes to, and what shows up as the card title on the dashboard.
+A common first-time mistake: pasting the full Gist URL into `gist_id` instead of just the hex string at the end. The agent will normalize it automatically now, but the cleanest value is the bare ID.
+
+Pick a unique `workstation_name` per machine — that's the key each agent writes to, and what shows up as the card title on the dashboard. If two agents push with the same name, they overwrite each other and only one card shows up.
+
+**Shared-volume / multi-pod setups (e.g. RunAI pods mounting the same `vast/`):** you probably want one `config.json` that works on *every* pod. In that case, either:
+
+- Leave `workstation_name` out of the config entirely → each pod defaults to its own `socket.gethostname()`.
+- Or use the `${hostname}` placeholder: `"workstation_name": "${hostname}"` (what the example config now ships with).
+- Or set the `WORKSTATION_NAME` env var per pod: `WORKSTATION_NAME=vqmimic-0 python agent.py config.json` — the env var overrides whatever the config says.
 
 Run it:
 
@@ -103,33 +109,60 @@ Repeat step 3 on every workstation you want monitored.
 
 ### 4. Open the dashboard
 
-From any machine with a browser — your laptop, your phone, a kiosk machine, anywhere:
+Pick one of three hosting options. For a real "log on from anywhere" setup, use **Option C (GitHub Pages)** — that's the one that gives you a real URL you can bookmark on your phone.
+
+#### Option A — just open the file (local, quick-check)
 
 ```bash
-# option A — open the static file directly
-open gpu-dashboard-agent/index.html
-
-# option B — local HTTP server (if opening the file directly doesn't like fetch())
-cd gpu-dashboard-agent && python -m http.server 8000
-# then visit http://localhost:8000
-
-# option C — GitHub Pages: enable Pages on the repo and visit
-# https://<you>.github.io/vibes/gpu-dashboard-agent/
+cd gpu-dashboard-agent && open index.html    # macOS
+# or double-click index.html in your file explorer
 ```
 
-On the dashboard:
+Fine for a quick check. Some browsers are picky about `fetch()` from `file://`, so if the page loads but never shows data, switch to option B.
 
-1. Paste your **gist_id** into the Gist ID field
-2. (Optional) Paste a **GitHub PAT** with `gist` scope — raises the read rate limit from 60/hr → 5000/hr
-3. Click **Connect**
+#### Option B — local HTTP server (private to your machine)
 
-The Gist ID is saved to `localStorage` so you only type it once. For a fully one-click bookmark, use:
-
-```
-https://<your dashboard URL>/?gist=<gist_id>
+```bash
+cd gpu-dashboard-agent
+python -m http.server 8000
 ```
 
-Done. Every 30s the dashboard re-fetches the Gist and each workstation card refreshes.
+Then visit <http://localhost:8000> in your browser. Same dashboard, served over HTTP so every browser is happy. Nothing leaves your laptop.
+
+#### Option C — GitHub Pages (online, bookmark-able, recommended)
+
+This gives you a real URL like `https://<you>.github.io/vibes/gpu-dashboard-agent/` that works from anywhere with no VPN and no server to keep running. One-time setup:
+
+1. Make sure this repo is pushed to GitHub (e.g. `https://github.com/<you>/vibes`).
+2. Go to your repo's **Settings → Pages** (direct link: `https://github.com/<you>/vibes/settings/pages`).
+3. Under **Source**, pick **Deploy from a branch**.
+4. Set **Branch** to your default branch (`master` or `main`) and **Folder** to `/ (root)`. Click **Save**.
+5. Wait ~30–60 seconds. Refresh the Pages settings page — you'll see a green banner saying *"Your site is live at https://&lt;you&gt;.github.io/vibes/"*.
+6. Your dashboard is at: `https://<you>.github.io/vibes/gpu-dashboard-agent/`
+
+That URL is the one to bookmark. It's public, but the dashboard is useless without the Gist ID — and your Gist is unlisted, so only people you share the ID with can see metrics.
+
+**Pages caveats:**
+
+- Pushes to the default branch trigger a rebuild; it takes 30–90s before your edits are live.
+- Pages caches aggressively — if you update `app.js`/`style.css` and don't see changes, hard-refresh with ⌘⇧R (Chrome/Safari) or ⌃⇧R (Windows/Linux).
+- Want to revoke access? Switch Pages source to `None`. The URL goes 404 immediately.
+
+#### Connecting the dashboard to your Gist
+
+Once the page loads (from any of the three options above):
+
+1. Paste your **gist_id** into the Gist ID field (just the hex string, not the URL — the page will strip the URL down for you either way)
+2. (Optional) Paste a **GitHub PAT** with `gist` scope into the PAT field — raises the read rate limit from 60/hr → 5000/hr. Stored only in your browser's localStorage.
+3. Click **Connect**.
+
+The Gist ID is saved to localStorage so you only type it once. For a truly one-click bookmark, put the Gist ID in the URL:
+
+```
+https://<you>.github.io/vibes/gpu-dashboard-agent/?gist=<gist_id>
+```
+
+Now bookmark that URL. Every 30s the dashboard re-fetches the Gist and each workstation card refreshes.
 
 ## Components
 

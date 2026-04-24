@@ -19,6 +19,7 @@ Config schema (config.json):
 """
 
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -35,6 +36,20 @@ def _normalize_gist_id(raw: str) -> str:
     return s.split("#")[0].split("?")[0]
 
 
+def _resolve_workstation_name(cfg_value: str | None) -> str:
+    """Pick a per-pod name. Env var wins; then config; then hostname fallback.
+
+    Supports `${hostname}` / `{hostname}` placeholders so a shared config file
+    across multiple pods can still produce unique names per pod.
+    """
+    env = os.environ.get("WORKSTATION_NAME", "").strip()
+    raw = (env or (cfg_value or "")).strip()
+    if not raw:
+        return socket.gethostname()
+    hostname = socket.gethostname()
+    return raw.replace("${hostname}", hostname).replace("{hostname}", hostname)
+
+
 def read_config(path: str) -> dict:
     with open(path) as f:
         cfg = json.load(f)
@@ -42,7 +57,7 @@ def read_config(path: str) -> dict:
         if not cfg.get(key):
             sys.exit(f"[agent] missing required config key: {key}")
     cfg["gist_id"] = _normalize_gist_id(cfg["gist_id"])
-    cfg.setdefault("workstation_name", socket.gethostname())
+    cfg["workstation_name"] = _resolve_workstation_name(cfg.get("workstation_name"))
     cfg.setdefault("interval_seconds", 30)
     cfg.setdefault("gist_file", "metrics.json")
     return cfg
