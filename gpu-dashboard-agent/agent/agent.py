@@ -27,12 +27,21 @@ import urllib.request
 from datetime import datetime, timezone
 
 
+def _normalize_gist_id(raw: str) -> str:
+    """Accept either a bare gist id or a full URL (https://gist.github.com/<user>/<id>)."""
+    s = raw.strip().rstrip("/")
+    if "/" in s:
+        s = s.split("/")[-1]
+    return s.split("#")[0].split("?")[0]
+
+
 def read_config(path: str) -> dict:
     with open(path) as f:
         cfg = json.load(f)
     for key in ("gist_id", "github_token"):
         if not cfg.get(key):
             sys.exit(f"[agent] missing required config key: {key}")
+    cfg["gist_id"] = _normalize_gist_id(cfg["gist_id"])
     cfg.setdefault("workstation_name", socket.gethostname())
     cfg.setdefault("interval_seconds", 30)
     cfg.setdefault("gist_file", "metrics.json")

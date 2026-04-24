@@ -61,7 +61,8 @@ curl -O https://raw.githubusercontent.com/KevinBian107/vibes/master/gpu-dashboar
 # make a real config and lock it down
 cp config.example.json config.json
 chmod 600 config.json
-$EDITOR config.json      # fill in gist_id, github_token, workstation_name
+nano config.json         # or: vi config.json  /  "${EDITOR:-nano}" config.json
+                         # fill in gist_id, github_token, workstation_name
 ```
 
 `config.json` should now look like this (substitute your own values):
@@ -150,7 +151,8 @@ On each workstation (Python 3.8+, no pip install needed):
 ```bash
 cp config.example.json config.json
 chmod 600 config.json
-$EDITOR config.json      # fill in gist_id, github_token, workstation_name
+nano config.json         # or: vi config.json  /  "${EDITOR:-nano}" config.json
+                         # fill in gist_id, github_token, workstation_name
 
 python agent.py config.json
 ```

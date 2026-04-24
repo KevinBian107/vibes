@@ -51,11 +51,12 @@ let lastFetchAt = 0;
 // ── connect / disconnect ──────────────────────────────────────────────────────
 
 function connect() {
-  const gist = gistInput.value.trim();
+  const gist = normalizeGistId(gistInput.value);
   if (!gist) {
     setStatus("Enter a Gist ID.", "err");
     return;
   }
+  gistInput.value = gist;
   localStorage.setItem(LS_GIST, gist);
   localStorage.setItem(LS_TOKEN, tokenInput.value.trim());
   connectBtn.hidden = true;
@@ -84,8 +85,14 @@ function restart() { startTimer(); fetchAndRender(); }
 
 // ── fetch ─────────────────────────────────────────────────────────────────────
 
+function normalizeGistId(raw) {
+  let s = (raw || "").trim().replace(/\/+$/, "");
+  if (s.includes("/")) s = s.split("/").pop();
+  return s.split("#")[0].split("?")[0];
+}
+
 async function fetchAndRender() {
-  const gist = gistInput.value.trim();
+  const gist = normalizeGistId(gistInput.value);
   if (!gist) return;
   const token = tokenInput.value.trim();
 
