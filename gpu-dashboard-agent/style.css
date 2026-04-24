@@ -150,6 +150,22 @@ main {
   gap: 14px;
 }
 
+.hidden-note {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.hidden-note b { color: var(--text); }
+.hidden-note ul {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);

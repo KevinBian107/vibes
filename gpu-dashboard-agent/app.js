@@ -4,17 +4,20 @@
 const LS_GIST = "gdba.gist_id";
 const LS_TOKEN = "gdba.github_token";
 const LS_INTERVAL = "gdba.interval";
+const LS_STALE = "gdba.stale_threshold";
 const GIST_FILE = "metrics.json";
 
 const el = (id) => document.getElementById(id);
 const gistInput = el("gist-id");
 const tokenInput = el("github-token");
 const intervalInput = el("interval");
+const staleInput = el("stale-threshold");
 const connectBtn = el("connect-btn");
 const disconnectBtn = el("disconnect-btn");
 const statusEl = el("status");
 const emptyEl = el("empty");
 const cardsEl = el("cards");
+const hiddenNoteEl = el("hidden-note");
 
 let timer = null;
 let lastFetchAt = 0;
@@ -29,16 +32,22 @@ let lastFetchAt = 0;
   const savedGist = localStorage.getItem(LS_GIST) || "";
   const savedToken = localStorage.getItem(LS_TOKEN) || "";
   const savedInterval = localStorage.getItem(LS_INTERVAL) || "30";
+  const savedStale = localStorage.getItem(LS_STALE) || "600";
 
   gistInput.value = urlGist || savedGist;
   tokenInput.value = savedToken;
   intervalInput.value = savedInterval;
+  staleInput.value = savedStale;
 
   connectBtn.addEventListener("click", connect);
   disconnectBtn.addEventListener("click", disconnect);
   intervalInput.addEventListener("change", () => {
     localStorage.setItem(LS_INTERVAL, intervalInput.value);
     if (timer) restart();
+  });
+  staleInput.addEventListener("change", () => {
+    localStorage.setItem(LS_STALE, staleInput.value);
+    fetchAndRender();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) stopTimer();
@@ -128,15 +137,41 @@ async function fetchAndRender() {
 function render(data) {
   const workstations = data.workstations || {};
   const names = Object.keys(workstations).sort();
+  const threshold = Math.max(0, parseInt(staleInput.value || "0", 10));
 
-  // diff-friendly: rebuild cards (small N, fine for 30s cadence)
   cardsEl.innerHTML = "";
+  const hidden = [];
   for (const name of names) {
-    cardsEl.appendChild(renderCard(name, workstations[name]));
+    const w = workstations[name];
+    const ageSec = w.updated_at ? (Date.now() - new Date(w.updated_at).getTime()) / 1000 : Infinity;
+    if (threshold > 0 && ageSec > threshold) {
+      hidden.push({ name, ageSec });
+      continue;
+    }
+    cardsEl.appendChild(renderCard(name, w));
   }
+
+  if (hidden.length) {
+    hiddenNoteEl.hidden = false;
+    hiddenNoteEl.innerHTML =
+      `<b>${hidden.length}</b> workstation${hidden.length === 1 ? "" : "s"} hidden ` +
+      `(no update in the last ${threshold}s):` +
+      `<ul>${hidden.map(h => `<li>${escapeHtml(h.name)} — ${formatAge(h.ageSec)} ago</li>`).join("")}</ul>`;
+  } else {
+    hiddenNoteEl.hidden = true;
+    hiddenNoteEl.innerHTML = "";
+  }
+
   if (names.length === 0) {
     setStatus("Gist loaded but no workstations reported yet.", "");
   }
+}
+
+function formatAge(sec) {
+  if (!isFinite(sec)) return "never";
+  if (sec < 90) return `${Math.round(sec)}s`;
+  if (sec < 3600) return `${Math.round(sec / 60)}m`;
+  return `${Math.round(sec / 3600)}h`;
 }
 
 function renderCard(name, w) {
