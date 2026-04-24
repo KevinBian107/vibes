@@ -24,6 +24,7 @@ import socket
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
@@ -226,6 +227,13 @@ def main():
                 f"gpus={len(payload['gpus'])}",
                 flush=True,
             )
+        except urllib.error.HTTPError as e:
+            body = ""
+            try:
+                body = e.read().decode("utf-8", "replace")[:500]
+            except Exception:
+                pass
+            print(f"[agent] error: HTTP {e.code} {e.reason} — {body}", file=sys.stderr, flush=True)
         except Exception as e:
             print(f"[agent] error: {e}", file=sys.stderr, flush=True)
         time.sleep(cfg["interval_seconds"])
