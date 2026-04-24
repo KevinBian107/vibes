@@ -1,4 +1,4 @@
-name: gpu-dashboard
+name: vibes
 channels:
   - conda-forge
   - defaults
